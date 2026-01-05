@@ -36,7 +36,7 @@ $script:PVM_SYMLINK = Join-Path $script:PVM_HOME "python"
 # Default Python download mirror
 $script:DEFAULT_MIRROR = "https://www.python.org/ftp/python"
 
-# Preset mirrors
+# Preset mirrors for Python download
 $script:MIRRORS = @{
     "default"   = "https://www.python.org/ftp/python"
     "tsinghua"  = "https://mirrors.tuna.tsinghua.edu.cn/python"
@@ -44,6 +44,16 @@ $script:MIRRORS = @{
     "huawei"    = "https://mirrors.huaweicloud.com/python"
     "npmmirror" = "https://registry.npmmirror.com/-/binary/python"
     "aliyun"    = "https://mirrors.aliyun.com/python"
+}
+
+# Preset mirrors for pip
+$script:PIP_MIRRORS = @{
+    "default"   = "https://pypi.org/simple"
+    "tsinghua"  = "https://pypi.tuna.tsinghua.edu.cn/simple"
+    "qinghua"   = "https://pypi.tuna.tsinghua.edu.cn/simple"
+    "huawei"    = "https://repo.huaweicloud.com/repository/pypi/simple"
+    "npmmirror" = "https://registry.npmmirror.com/-/binary/pypi/simple"
+    "aliyun"    = "https://mirrors.aliyun.com/pypi/simple"
 }
 
 # Available Python versions (commonly used stable versions)
@@ -568,7 +578,32 @@ function Set-PvmConfig {
     }
     $settings | ConvertTo-Json | Set-Content -Path $script:PVM_SETTINGS_FILE -Encoding UTF8
     
-    Write-Host "Mirror configured: $mirrorUrl" -ForegroundColor Green
+    Write-Host "Python mirror configured: $mirrorUrl" -ForegroundColor Green
+    
+    # Configure pip mirror
+    $pipMirrorUrl = $null
+    if ($script:PIP_MIRRORS.ContainsKey($MirrorName.ToLower())) {
+        $pipMirrorUrl = $script:PIP_MIRRORS[$MirrorName.ToLower()]
+    }
+    
+    if ($pipMirrorUrl) {
+        # Create pip config directory
+        $pipConfigDir = Join-Path $env:APPDATA "pip"
+        if (-not (Test-Path $pipConfigDir)) {
+            New-Item -ItemType Directory -Path $pipConfigDir -Force | Out-Null
+        }
+        
+        # Write pip.ini
+        $pipConfigFile = Join-Path $pipConfigDir "pip.ini"
+        $pipConfig = @"
+[global]
+index-url = $pipMirrorUrl
+trusted-host = $([System.Uri]::new($pipMirrorUrl).Host)
+"@
+        Set-Content -Path $pipConfigFile -Value $pipConfig -Encoding UTF8
+        Write-Host "pip mirror configured: $pipMirrorUrl" -ForegroundColor Green
+        Write-Host "pip config file: $pipConfigFile" -ForegroundColor DarkGray
+    }
 }
 
 function Show-PvmConfig {
@@ -579,18 +614,31 @@ function Show-PvmConfig {
     $settings = Get-PvmSettings
     $mirror = if ($settings.mirror) { $settings.mirror } else { $script:DEFAULT_MIRROR }
     
+    # Get pip config
+    $pipConfigFile = Join-Path $env:APPDATA "pip\pip.ini"
+    $pipMirror = "https://pypi.org/simple (default)"
+    if (Test-Path $pipConfigFile) {
+        $pipContent = Get-Content $pipConfigFile -Raw
+        if ($pipContent -match 'index-url\s*=\s*(.+)') {
+            $pipMirror = $matches[1].Trim()
+        }
+    }
+    
     Write-Host ""
     Write-Host "pvm Configuration:" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  Mirror: $mirror" -ForegroundColor White
-    Write-Host "  Config: $($script:PVM_SETTINGS_FILE)" -ForegroundColor DarkGray
+    Write-Host "  Python mirror: $mirror" -ForegroundColor White
+    Write-Host "  pip mirror:    $pipMirror" -ForegroundColor White
     Write-Host ""
-    Write-Host "Available presets:" -ForegroundColor Yellow
+    Write-Host "  pvm config:  $($script:PVM_SETTINGS_FILE)" -ForegroundColor DarkGray
+    Write-Host "  pip config:  $pipConfigFile" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "Available presets (configures both Python and pip):" -ForegroundColor Yellow
     Write-Host "  pvm config tsinghua   - Tsinghua University"
     Write-Host "  pvm config huawei     - Huawei Cloud"
     Write-Host "  pvm config npmmirror  - npmmirror"
     Write-Host "  pvm config aliyun     - Aliyun"
-    Write-Host "  pvm config default    - python.org (Official)"
+    Write-Host "  pvm config default    - python.org / pypi.org (Official)"
     Write-Host ""
 }
 

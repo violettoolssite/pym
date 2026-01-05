@@ -21,7 +21,7 @@ PVM_SYMLINK="$PVM_HOME/python"
 # Default mirror
 DEFAULT_MIRROR="https://www.python.org/ftp/python"
 
-# Preset mirrors
+# Preset mirrors for Python download
 declare -A MIRRORS=(
     ["default"]="https://www.python.org/ftp/python"
     ["tsinghua"]="https://mirrors.tuna.tsinghua.edu.cn/python"
@@ -29,6 +29,16 @@ declare -A MIRRORS=(
     ["huawei"]="https://mirrors.huaweicloud.com/python"
     ["npmmirror"]="https://registry.npmmirror.com/-/binary/python"
     ["aliyun"]="https://mirrors.aliyun.com/python"
+)
+
+# Preset mirrors for pip
+declare -A PIP_MIRRORS=(
+    ["default"]="https://pypi.org/simple"
+    ["tsinghua"]="https://pypi.tuna.tsinghua.edu.cn/simple"
+    ["qinghua"]="https://pypi.tuna.tsinghua.edu.cn/simple"
+    ["huawei"]="https://repo.huaweicloud.com/repository/pypi/simple"
+    ["npmmirror"]="https://registry.npmmirror.com/-/binary/pypi/simple"
+    ["aliyun"]="https://mirrors.aliyun.com/pypi/simple"
 )
 
 # Colors
@@ -546,7 +556,33 @@ pvm_config() {
     # Save to settings
     echo "{\"mirror\": \"$mirror_url\"}" > "$PVM_SETTINGS_FILE"
     
-    echo -e "${GREEN}Mirror configured: $mirror_url${NC}"
+    echo -e "${GREEN}Python mirror configured: $mirror_url${NC}"
+    
+    # Configure pip mirror
+    local pip_mirror_url=""
+    if [[ -n "${PIP_MIRRORS[$lower_name]}" ]]; then
+        pip_mirror_url="${PIP_MIRRORS[$lower_name]}"
+    fi
+    
+    if [[ -n "$pip_mirror_url" ]]; then
+        # Create pip config directory
+        local pip_config_dir="$HOME/.pip"
+        mkdir -p "$pip_config_dir"
+        
+        # Extract host from URL for trusted-host
+        local pip_host
+        pip_host=$(echo "$pip_mirror_url" | sed -E 's|https?://([^/]+).*|\1|')
+        
+        # Write pip.conf
+        local pip_config_file="$pip_config_dir/pip.conf"
+        cat > "$pip_config_file" << EOF
+[global]
+index-url = $pip_mirror_url
+trusted-host = $pip_host
+EOF
+        echo -e "${GREEN}pip mirror configured: $pip_mirror_url${NC}"
+        echo -e "${GRAY}pip config file: $pip_config_file${NC}"
+    fi
 }
 
 # Show current config
@@ -554,18 +590,32 @@ pvm_show_config() {
     local mirror
     mirror=$(pvm_get_mirror)
     
+    # Get pip config
+    local pip_config_file="$HOME/.pip/pip.conf"
+    local pip_mirror="https://pypi.org/simple (default)"
+    if [[ -f "$pip_config_file" ]]; then
+        local pip_url
+        pip_url=$(grep -E '^index-url\s*=' "$pip_config_file" 2>/dev/null | sed 's/index-url\s*=\s*//')
+        if [[ -n "$pip_url" ]]; then
+            pip_mirror="$pip_url"
+        fi
+    fi
+    
     echo ""
     echo -e "${CYAN}pvm Configuration:${NC}"
     echo ""
-    echo "  Mirror: $mirror"
-    echo -e "${GRAY}  Config: $PVM_SETTINGS_FILE${NC}"
+    echo "  Python mirror: $mirror"
+    echo "  pip mirror:    $pip_mirror"
     echo ""
-    echo -e "${YELLOW}Available presets:${NC}"
+    echo -e "${GRAY}  pvm config:  $PVM_SETTINGS_FILE${NC}"
+    echo -e "${GRAY}  pip config:  $pip_config_file${NC}"
+    echo ""
+    echo -e "${YELLOW}Available presets (configures both Python and pip):${NC}"
     echo "  pvm config tsinghua   - Tsinghua University"
     echo "  pvm config huawei     - Huawei Cloud"
     echo "  pvm config npmmirror  - npmmirror"
     echo "  pvm config aliyun     - Aliyun"
-    echo "  pvm config default    - python.org (Official)"
+    echo "  pvm config default    - python.org / pypi.org (Official)"
     echo ""
 }
 
