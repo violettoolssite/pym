@@ -10,12 +10,12 @@
 
 ### Features
 
-- 📦 Install multiple Python versions side by side
-- 🔄 Switch between Python versions with a single command
-- 🗑️ Uninstall Python versions you no longer need
-- 🪟 Windows support (PowerShell/Batch)
-- 🐧 Linux/macOS support (Bash)
-- 🌏 Mirror support for faster downloads in China
+- Install multiple Python versions side by side
+- Switch between Python versions with a single command
+- Uninstall Python versions you no longer need
+- Windows support (PowerShell/CMD)
+- Linux/macOS support (Bash)
+- Mirror support for faster downloads in China
 
 ### Installation
 
@@ -32,6 +32,16 @@ Or manually:
 git clone https://github.com/violettoolssite/pym.git
 cd pym
 .\install.ps1
+```
+
+#### Windows (CMD)
+
+After installation, you can use `pvm` command directly in CMD:
+
+```cmd
+pvm --help
+pvm list available
+pvm install 3.12.4
 ```
 
 #### Linux/macOS
@@ -111,12 +121,12 @@ Apache License 2.0 - see [LICENSE](LICENSE)
 
 ### 特性
 
-- 📦 并行安装多个 Python 版本
-- 🔄 一条命令切换 Python 版本
-- 🗑️ 卸载不再需要的 Python 版本
-- 🪟 支持 Windows（PowerShell/Batch）
-- 🐧 支持 Linux/macOS（Bash）
-- 🌏 支持国内镜像加速下载
+- 并行安装多个 Python 版本
+- 一条命令切换 Python 版本
+- 卸载不再需要的 Python 版本
+- 支持 Windows (PowerShell/CMD)
+- 支持 Linux/macOS (Bash)
+- 支持国内镜像加速下载
 
 ### 安装
 
@@ -133,6 +143,16 @@ irm https://raw.githubusercontent.com/violettoolssite/pym/main/install.ps1 | iex
 git clone https://github.com/violettoolssite/pym.git
 cd pym
 .\install.ps1
+```
+
+#### Windows (CMD)
+
+安装完成后，可以直接在 CMD 中使用 `pvm` 命令：
+
+```cmd
+pvm --help
+pvm list available
+pvm install 3.12.4
 ```
 
 #### Linux/macOS
@@ -176,7 +196,7 @@ pvm --help
 
 ### 配置
 
-pvm 将数据存储在 `~/.pvm`（Unix）或 `%USERPROFILE%\.pvm`（Windows）：
+pvm 将数据存储在 `~/.pvm` (Unix) 或 `%USERPROFILE%\.pvm` (Windows)：
 
 ```
 .pvm/
@@ -203,4 +223,3 @@ pvm 将数据存储在 `~/.pvm`（Unix）或 `%USERPROFILE%\.pvm`（Windows）�
 ### 许可证
 
 Apache License 2.0 - 详见 [LICENSE](LICENSE)
-

@@ -247,11 +247,11 @@ function Install-PythonVersion {
     }
     
     # Determine architecture suffix
-    $archSuffix = if ($Architecture -eq '32') { '' } else { '-amd64' }
+    $archSuffix = if ($Architecture -eq '32') { 'win32' } else { 'amd64' }
     
     # Build download URL
     $mirror = Get-Mirror
-    $zipName = "python-$Version-embed-win$archSuffix.zip"
+    $zipName = "python-$Version-embed-$archSuffix.zip"
     $downloadUrl = "$mirror/$Version/$zipName"
     
     Write-Host "Installing Python $Version ($Architecture-bit)..." -ForegroundColor Cyan
