@@ -325,7 +325,15 @@ pvm_install() {
     local platform
     platform=$(pvm_detect_platform) || return 1
     
-    echo -e "${CYAN}Installing Python $version...${NC}"
+    echo ""
+    echo -e "${CYAN}=============================================${NC}"
+    echo -e "${CYAN}  Installing Python $version${NC}"
+    echo -e "${CYAN}=============================================${NC}"
+    echo ""
+    echo -e "  Mirror:     $mirror"
+    echo -e "  Platform:   $platform"
+    echo -e "  Install to: $version_dir"
+    echo ""
     
     # Download source and build
     local source_url="$mirror/$version/Python-$version.tgz"
@@ -333,8 +341,8 @@ pvm_install() {
     temp_dir=$(mktemp -d)
     local source_file="$temp_dir/Python-$version.tgz"
     
-    echo -e "${YELLOW}Downloading Python $version source...${NC}"
-    echo -e "${GRAY}URL: $source_url${NC}"
+    echo -e "${YELLOW}[1/5] Downloading Python $version source...${NC}"
+    echo -e "${GRAY}      URL: $source_url${NC}"
     
     if ! curl -fSL "$source_url" -o "$source_file" 2>/dev/null; then
         echo -e "${RED}Error: Failed to download Python $version${NC}"
@@ -343,7 +351,9 @@ pvm_install() {
         return 1
     fi
     
-    echo -e "${YELLOW}Extracting...${NC}"
+    echo -e "${GREEN}      Download complete!${NC}"
+    
+    echo -e "${YELLOW}[2/5] Extracting source files...${NC}"
     tar -xzf "$source_file" -C "$temp_dir"
     
     local source_dir="$temp_dir/Python-$version"
@@ -359,7 +369,9 @@ pvm_install() {
         echo -e "${YELLOW}Continuing anyway...${NC}"
     }
     
-    echo -e "${YELLOW}Configuring...${NC}"
+    echo -e "${GREEN}      Extraction complete!${NC}"
+    
+    echo -e "${YELLOW}[3/5] Configuring build options...${NC}"
     cd "$source_dir"
     
     # Configure with optimization
@@ -384,16 +396,21 @@ pvm_install() {
         return 1
     fi
     
-    echo -e "${YELLOW}Building (this may take a while)...${NC}"
+    echo -e "${GREEN}      Configuration complete!${NC}"
+    
+    echo -e "${YELLOW}[4/5] Building (this may take 5-15 minutes)...${NC}"
     local cpu_count
     cpu_count=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+    echo -e "${GRAY}      Using $cpu_count CPU cores${NC}"
     
     if ! make -j"$cpu_count" > "$temp_dir/make.log" 2>&1; then
         echo -e "${RED}Error: Build failed. Check $temp_dir/make.log for details.${NC}"
         return 1
     fi
     
-    echo -e "${YELLOW}Installing...${NC}"
+    echo -e "${GREEN}      Build complete!${NC}"
+    
+    echo -e "${YELLOW}[5/5] Installing to $version_dir...${NC}"
     if ! make install > "$temp_dir/install.log" 2>&1; then
         echo -e "${RED}Error: Installation failed. Check $temp_dir/install.log for details.${NC}"
         return 1
@@ -403,8 +420,17 @@ pvm_install() {
     cd - > /dev/null
     rm -rf "$temp_dir"
     
-    echo -e "${GREEN}Python $version installed successfully!${NC}"
-    echo "Use 'pvm use $version' to start using it."
+    echo ""
+    echo -e "${GREEN}=============================================${NC}"
+    echo -e "${GREEN}  Python $version installed successfully!${NC}"
+    echo -e "${GREEN}=============================================${NC}"
+    echo ""
+    echo "  Location: $version_dir"
+    echo ""
+    echo -e "${YELLOW}  Next steps:${NC}"
+    echo -e "${CYAN}    pvm use $version        # Switch to this version${NC}"
+    echo -e "${CYAN}    python3 --version       # Verify installation${NC}"
+    echo ""
 }
 
 # Uninstall Python version
@@ -433,11 +459,37 @@ pvm_uninstall() {
         rm -f "$PVM_SYMLINK"
     fi
     
-    echo -e "${CYAN}Uninstalling Python $version...${NC}"
+    echo ""
+    echo -e "${CYAN}=============================================${NC}"
+    echo -e "${CYAN}  Uninstalling Python $version${NC}"
+    echo -e "${CYAN}=============================================${NC}"
+    echo ""
+    echo "  Location: $version_dir"
+    echo ""
+    echo -e "${YELLOW}  Removing files...${NC}"
     
     rm -rf "$version_dir"
     
-    echo -e "${GREEN}Python $version uninstalled successfully!${NC}"
+    echo ""
+    echo -e "${GREEN}=============================================${NC}"
+    echo -e "${GREEN}  Python $version uninstalled successfully!${NC}"
+    echo -e "${GREEN}=============================================${NC}"
+    echo ""
+    
+    # Show remaining versions
+    local remaining
+    remaining=$(pvm_list_installed)
+    if [[ -n "$remaining" ]]; then
+        echo "  Remaining installed versions:"
+        echo "$remaining" | while read -r v; do
+            echo -e "${CYAN}    - $v${NC}"
+        done
+        echo ""
+    else
+        echo -e "${YELLOW}  No Python versions remaining.${NC}"
+        echo "  Use 'pvm install <version>' to install a new version."
+        echo ""
+    fi
 }
 
 # Use Python version
@@ -465,20 +517,39 @@ pvm_use() {
     rm -f "$PVM_SYMLINK"
     ln -sf "$version_dir" "$PVM_SYMLINK"
     
-    echo -e "${GREEN}Now using Python $version${NC}"
+    echo ""
+    echo -e "${GREEN}=============================================${NC}"
+    echo -e "${GREEN}  Switched to Python $version${NC}"
+    echo -e "${GREEN}=============================================${NC}"
+    echo ""
     
     # Show Python version
     local python_exe="$PVM_SYMLINK/bin/python3"
     if [[ -x "$python_exe" ]]; then
-        echo -e "${GRAY}$($python_exe --version 2>&1)${NC}"
+        local python_version
+        python_version=$($python_exe --version 2>&1)
+        echo "  Python:  $python_version"
+        
+        # Try to get pip version
+        local pip_exe="$PVM_SYMLINK/bin/pip3"
+        if [[ -x "$pip_exe" ]]; then
+            local pip_version
+            pip_version=$($pip_exe --version 2>&1 | sed 's/ from.*//')
+            echo "  pip:     $pip_version"
+        fi
+        
+        echo ""
+        echo -e "${GRAY}  Path:    $python_exe${NC}"
     fi
     
     # Check if pvm python is in PATH
     if [[ ":$PATH:" != *":$PVM_SYMLINK/bin:"* ]]; then
         echo ""
-        echo -e "${YELLOW}Note: Add the following to your shell profile to use pvm-managed Python:${NC}"
-        echo -e "${CYAN}  export PATH=\"$PVM_SYMLINK/bin:\$PATH\"${NC}"
+        echo -e "${YELLOW}  Warning: pvm Python path not in PATH${NC}"
+        echo -e "${YELLOW}  Add this to your shell profile:${NC}"
+        echo -e "${CYAN}    export PATH=\"$PVM_SYMLINK/bin:\$PATH\"${NC}"
     fi
+    echo ""
 }
 
 # Show current version
@@ -487,17 +558,28 @@ pvm_current() {
     current=$(pvm_get_current)
     
     if [[ -z "$current" ]]; then
-        echo -e "${YELLOW}No Python version is currently active.${NC}"
-        echo "Use 'pvm use <version>' to activate a version."
+        echo ""
+        echo -e "${YELLOW}  No Python version is currently active.${NC}"
+        echo ""
+        echo "  To get started:"
+        echo -e "${CYAN}    pvm list available    # See available versions${NC}"
+        echo -e "${CYAN}    pvm install 3.12.4    # Install a version${NC}"
+        echo -e "${CYAN}    pvm use 3.12.4        # Activate it${NC}"
+        echo ""
         return
     fi
     
-    echo -e "${GREEN}Current Python version: $current${NC}"
+    echo ""
+    echo -e "${GREEN}  Current version: $current${NC}"
     
     local python_exe="$PVM_SYMLINK/bin/python3"
     if [[ -x "$python_exe" ]]; then
-        echo -e "${GRAY}$($python_exe --version 2>&1)${NC}"
+        local python_version
+        python_version=$($python_exe --version 2>&1)
+        echo "  Python output:   $python_version"
+        echo -e "${GRAY}  Path:            $python_exe${NC}"
     fi
+    echo ""
 }
 
 # Show which python
@@ -506,16 +588,32 @@ pvm_which() {
     current=$(pvm_get_current)
     
     if [[ -z "$current" ]]; then
-        echo -e "${YELLOW}No Python version is currently active.${NC}"
+        echo ""
+        echo -e "${YELLOW}  No Python version is currently active.${NC}"
+        echo "  Use 'pvm use <version>' to activate a version."
+        echo ""
         return
     fi
     
     local python_exe="$PVM_SYMLINK/bin/python3"
+    local pip_exe="$PVM_SYMLINK/bin/pip3"
+    
+    echo ""
+    echo -e "${GREEN}  Current version: $current${NC}"
+    echo ""
+    
     if [[ -x "$python_exe" ]]; then
-        echo "$python_exe"
+        echo "  python3: $python_exe"
     else
-        echo -e "${RED}Python executable not found.${NC}"
+        echo -e "${RED}  python3: (not found)${NC}"
     fi
+    
+    if [[ -x "$pip_exe" ]]; then
+        echo "  pip3:    $pip_exe"
+    else
+        echo -e "${YELLOW}  pip3:    (not found)${NC}"
+    fi
+    echo ""
 }
 
 # Configure mirror

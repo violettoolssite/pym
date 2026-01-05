@@ -309,8 +309,16 @@ function Install-PythonVersion {
     $downloadUrl = "$mirror/$Version/$zipName"
     
     $archDisplay = if ($Architecture -eq 'arm64') { 'ARM64' } else { "$Architecture-bit" }
-    Write-Host "Installing Python $Version ($archDisplay)..." -ForegroundColor Cyan
-    Write-Host "Download URL: $downloadUrl" -ForegroundColor DarkGray
+    
+    Write-Host ""
+    Write-Host "=============================================" -ForegroundColor Cyan
+    Write-Host "  Installing Python $Version ($archDisplay)" -ForegroundColor Cyan
+    Write-Host "=============================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Mirror:       $mirror" -ForegroundColor DarkGray
+    Write-Host "  Package:      $zipName" -ForegroundColor DarkGray
+    Write-Host "  Install to:   $versionDir" -ForegroundColor DarkGray
+    Write-Host ""
     
     # Create temp directory
     $tempDir = Join-Path $env:TEMP "pvm-install-$Version"
@@ -324,7 +332,7 @@ function Install-PythonVersion {
         New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
         
         # Download Python embeddable package
-        Write-Host "Downloading..." -ForegroundColor Yellow
+        Write-Host "[1/3] Downloading Python $Version..." -ForegroundColor Yellow
         
         $ProgressPreference = 'SilentlyContinue'
         try {
@@ -338,8 +346,10 @@ function Install-PythonVersion {
         }
         $ProgressPreference = 'Continue'
         
+        Write-Host "      Download complete!" -ForegroundColor Green
+        
         # Extract
-        Write-Host "Extracting..." -ForegroundColor Yellow
+        Write-Host "[2/3] Extracting files..." -ForegroundColor Yellow
         Expand-Archive -Path $zipPath -DestinationPath $versionDir -Force
         
         # Enable pip by modifying python*._pth file
@@ -350,8 +360,10 @@ function Install-PythonVersion {
             Set-Content -Path $pthFile.FullName -Value $newContent
         }
         
+        Write-Host "      Extraction complete!" -ForegroundColor Green
+        
         # Download get-pip.py and install pip
-        Write-Host "Installing pip..." -ForegroundColor Yellow
+        Write-Host "[3/3] Installing pip..." -ForegroundColor Yellow
         $getPipUrl = "https://bootstrap.pypa.io/get-pip.py"
         $getPipPath = Join-Path $versionDir "get-pip.py"
         
@@ -368,8 +380,17 @@ function Install-PythonVersion {
             Write-Host "Warning: Could not install pip. You may need to install it manually." -ForegroundColor Yellow
         }
         
-        Write-Host "Python $Version installed successfully!" -ForegroundColor Green
-        Write-Host "Use 'pvm use $Version' to start using it."
+        Write-Host ""
+        Write-Host "=============================================" -ForegroundColor Green
+        Write-Host "  Python $Version installed successfully!" -ForegroundColor Green
+        Write-Host "=============================================" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "  Location: $versionDir" -ForegroundColor White
+        Write-Host ""
+        Write-Host "  Next steps:" -ForegroundColor Yellow
+        Write-Host "    pvm use $Version        # Switch to this version" -ForegroundColor Cyan
+        Write-Host "    python --version        # Verify installation" -ForegroundColor Cyan
+        Write-Host ""
         
         return $true
     }
@@ -418,11 +439,38 @@ function Uninstall-PythonVersion {
         }
     }
     
-    Write-Host "Uninstalling Python $Version..." -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "=============================================" -ForegroundColor Cyan
+    Write-Host "  Uninstalling Python $Version" -ForegroundColor Cyan
+    Write-Host "=============================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Location: $versionDir" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  Removing files..." -ForegroundColor Yellow
     
     try {
         Remove-Item -Path $versionDir -Recurse -Force
-        Write-Host "Python $Version uninstalled successfully!" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "=============================================" -ForegroundColor Green
+        Write-Host "  Python $Version uninstalled successfully!" -ForegroundColor Green
+        Write-Host "=============================================" -ForegroundColor Green
+        Write-Host ""
+        
+        # Show remaining versions
+        $remaining = Get-InstalledVersions
+        if ($remaining.Count -gt 0) {
+            Write-Host "  Remaining installed versions:" -ForegroundColor White
+            foreach ($v in $remaining) {
+                Write-Host "    - $v" -ForegroundColor Cyan
+            }
+            Write-Host ""
+        }
+        else {
+            Write-Host "  No Python versions remaining." -ForegroundColor Yellow
+            Write-Host "  Use 'pvm install <version>' to install a new version." -ForegroundColor White
+            Write-Host ""
+        }
+        
         return $true
     }
     catch {
@@ -466,13 +514,31 @@ function Use-PythonVersion {
         Copy-Item -Path $versionDir -Destination $script:PVM_SYMLINK -Recurse -Force
     }
     
-    Write-Host "Now using Python $Version" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "=============================================" -ForegroundColor Green
+    Write-Host "  Switched to Python $Version" -ForegroundColor Green
+    Write-Host "=============================================" -ForegroundColor Green
+    Write-Host ""
     
     # Show Python version
     $pythonExe = Join-Path $script:PVM_SYMLINK "python.exe"
     if (Test-Path $pythonExe) {
         $versionOutput = & $pythonExe --version 2>&1
-        Write-Host $versionOutput -ForegroundColor DarkGray
+        Write-Host "  Python:  $versionOutput" -ForegroundColor White
+        
+        # Try to get pip version
+        $pipExe = Join-Path $script:PVM_SYMLINK "Scripts\pip.exe"
+        if (Test-Path $pipExe) {
+            try {
+                $pipVersion = & $pipExe --version 2>&1
+                $pipVersion = $pipVersion -replace ' from.*', ''
+                Write-Host "  pip:     $pipVersion" -ForegroundColor White
+            }
+            catch { }
+        }
+        
+        Write-Host ""
+        Write-Host "  Path:    $pythonExe" -ForegroundColor DarkGray
     }
     
     # Check if pvm\python is in PATH
@@ -481,11 +547,13 @@ function Use-PythonVersion {
     
     if ($currentPath -notlike "*$pvmPythonPath*") {
         Write-Host ""
-        Write-Host "Note: Add the following to your PATH to use pvm-managed Python:" -ForegroundColor Yellow
-        Write-Host "  $pvmPythonPath" -ForegroundColor Cyan
-        Write-Host "  $pvmPythonPath\Scripts" -ForegroundColor Cyan
+        Write-Host "  Warning: pvm Python path not in PATH" -ForegroundColor Yellow
+        Write-Host "  Add these paths to use pvm-managed Python:" -ForegroundColor Yellow
+        Write-Host "    $pvmPythonPath" -ForegroundColor Cyan
+        Write-Host "    $pvmPythonPath\Scripts" -ForegroundColor Cyan
     }
     
+    Write-Host ""
     return $true
 }
 
@@ -497,18 +565,27 @@ function Show-CurrentVersion {
     $current = Get-CurrentVersion
     
     if ($null -eq $current -or $current -eq '') {
-        Write-Host "No Python version is currently active." -ForegroundColor Yellow
-        Write-Host "Use 'pvm use <version>' to activate a version."
+        Write-Host ""
+        Write-Host "  No Python version is currently active." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "  To get started:" -ForegroundColor White
+        Write-Host "    pvm list available    # See available versions" -ForegroundColor Cyan
+        Write-Host "    pvm install 3.12.4    # Install a version" -ForegroundColor Cyan
+        Write-Host "    pvm use 3.12.4        # Activate it" -ForegroundColor Cyan
+        Write-Host ""
         return
     }
     
-    Write-Host "Current Python version: $current" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "  Current version: $current" -ForegroundColor Green
     
     $pythonExe = Join-Path $script:PVM_SYMLINK "python.exe"
     if (Test-Path $pythonExe) {
         $versionOutput = & $pythonExe --version 2>&1
-        Write-Host $versionOutput -ForegroundColor DarkGray
+        Write-Host "  Python output:   $versionOutput" -ForegroundColor White
+        Write-Host "  Path:            $pythonExe" -ForegroundColor DarkGray
     }
+    Write-Host ""
 }
 
 function Show-WhichPython {
@@ -519,17 +596,35 @@ function Show-WhichPython {
     $current = Get-CurrentVersion
     
     if ($null -eq $current -or $current -eq '') {
-        Write-Host "No Python version is currently active." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "  No Python version is currently active." -ForegroundColor Yellow
+        Write-Host "  Use 'pvm use <version>' to activate a version." -ForegroundColor White
+        Write-Host ""
         return
     }
     
     $pythonExe = Join-Path $script:PVM_SYMLINK "python.exe"
+    $pipExe = Join-Path $script:PVM_SYMLINK "Scripts\pip.exe"
+    
+    Write-Host ""
+    Write-Host "  Current version: $current" -ForegroundColor Green
+    Write-Host ""
+    
     if (Test-Path $pythonExe) {
-        Write-Host $pythonExe
+        Write-Host "  python:  $pythonExe" -ForegroundColor White
     }
     else {
-        Write-Host "Python executable not found." -ForegroundColor Red
+        Write-Host "  python:  (not found)" -ForegroundColor Red
     }
+    
+    if (Test-Path $pipExe) {
+        Write-Host "  pip:     $pipExe" -ForegroundColor White
+    }
+    else {
+        Write-Host "  pip:     (not found)" -ForegroundColor Yellow
+    }
+    
+    Write-Host ""
 }
 
 function Set-PvmConfig {
