@@ -84,6 +84,122 @@ download_file() {
     fi
 }
 
+# Detect OS and install dependencies
+install_dependencies() {
+    print_color "$YELLOW" "Checking and installing build dependencies..."
+    
+    local os_type=""
+    local pkg_manager=""
+    
+    # Detect OS
+    if [[ -f /etc/os-release ]]; then
+        . /etc/os-release
+        os_type="$ID"
+    elif [[ -f /etc/redhat-release ]]; then
+        os_type="rhel"
+    elif [[ "$(uname)" == "Darwin" ]]; then
+        os_type="macos"
+    fi
+    
+    case "$os_type" in
+        ubuntu|debian|linuxmint|pop)
+            print_color "$CYAN" "Detected: Debian/Ubuntu based system"
+            if command -v apt-get &> /dev/null; then
+                print_color "$YELLOW" "Installing dependencies with apt..."
+                sudo apt-get update -qq
+                sudo apt-get install -y -qq build-essential libssl-dev zlib1g-dev \
+                    libbz2-dev libreadline-dev libsqlite3-dev libffi-dev \
+                    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev liblzma-dev \
+                    curl wget 2>/dev/null || {
+                    print_color "$YELLOW" "Some packages may have failed, continuing..."
+                }
+                print_color "$GREEN" "Dependencies installed!"
+            fi
+            ;;
+        centos|rhel|fedora|rocky|almalinux)
+            print_color "$CYAN" "Detected: RHEL/CentOS based system"
+            if command -v dnf &> /dev/null; then
+                print_color "$YELLOW" "Installing dependencies with dnf..."
+                sudo dnf groupinstall -y "Development Tools" 2>/dev/null || true
+                sudo dnf install -y openssl-devel bzip2-devel libffi-devel \
+                    readline-devel sqlite-devel xz-devel zlib-devel \
+                    ncurses-devel tk-devel curl wget 2>/dev/null || {
+                    print_color "$YELLOW" "Some packages may have failed, continuing..."
+                }
+                print_color "$GREEN" "Dependencies installed!"
+            elif command -v yum &> /dev/null; then
+                print_color "$YELLOW" "Installing dependencies with yum..."
+                sudo yum groupinstall -y "Development Tools" 2>/dev/null || true
+                sudo yum install -y openssl-devel bzip2-devel libffi-devel \
+                    readline-devel sqlite-devel xz-devel zlib-devel \
+                    ncurses-devel tk-devel curl wget 2>/dev/null || {
+                    print_color "$YELLOW" "Some packages may have failed, continuing..."
+                }
+                print_color "$GREEN" "Dependencies installed!"
+            fi
+            ;;
+        arch|manjaro)
+            print_color "$CYAN" "Detected: Arch based system"
+            if command -v pacman &> /dev/null; then
+                print_color "$YELLOW" "Installing dependencies with pacman..."
+                sudo pacman -Sy --noconfirm base-devel openssl zlib bzip2 \
+                    readline sqlite libffi xz tk curl wget 2>/dev/null || {
+                    print_color "$YELLOW" "Some packages may have failed, continuing..."
+                }
+                print_color "$GREEN" "Dependencies installed!"
+            fi
+            ;;
+        opensuse*|sles)
+            print_color "$CYAN" "Detected: openSUSE/SLES"
+            if command -v zypper &> /dev/null; then
+                print_color "$YELLOW" "Installing dependencies with zypper..."
+                sudo zypper install -y -t pattern devel_basis 2>/dev/null || true
+                sudo zypper install -y libopenssl-devel zlib-devel libbz2-devel \
+                    readline-devel sqlite3-devel libffi-devel xz-devel tk-devel \
+                    curl wget 2>/dev/null || {
+                    print_color "$YELLOW" "Some packages may have failed, continuing..."
+                }
+                print_color "$GREEN" "Dependencies installed!"
+            fi
+            ;;
+        alpine)
+            print_color "$CYAN" "Detected: Alpine Linux"
+            if command -v apk &> /dev/null; then
+                print_color "$YELLOW" "Installing dependencies with apk..."
+                sudo apk add --no-cache build-base openssl-dev zlib-dev bzip2-dev \
+                    readline-dev sqlite-dev libffi-dev xz-dev tk-dev linux-headers \
+                    curl wget 2>/dev/null || {
+                    print_color "$YELLOW" "Some packages may have failed, continuing..."
+                }
+                print_color "$GREEN" "Dependencies installed!"
+            fi
+            ;;
+        macos)
+            print_color "$CYAN" "Detected: macOS"
+            if ! command -v xcode-select &> /dev/null || ! xcode-select -p &> /dev/null; then
+                print_color "$YELLOW" "Installing Xcode Command Line Tools..."
+                xcode-select --install 2>/dev/null || true
+                print_color "$YELLOW" "Please complete Xcode CLI tools installation if prompted."
+            fi
+            
+            if command -v brew &> /dev/null; then
+                print_color "$YELLOW" "Installing dependencies with Homebrew..."
+                brew install openssl@3 readline sqlite3 xz zlib tcl-tk 2>/dev/null || {
+                    print_color "$YELLOW" "Some packages may have failed, continuing..."
+                }
+                print_color "$GREEN" "Dependencies installed!"
+            else
+                print_color "$YELLOW" "Homebrew not found. Install it from https://brew.sh for best experience."
+            fi
+            ;;
+        *)
+            print_color "$YELLOW" "Unknown OS: $os_type"
+            print_color "$YELLOW" "Please install build dependencies manually."
+            print_color "$YELLOW" "Needed: gcc, make, openssl-dev, zlib-dev, bzip2-dev, readline-dev, sqlite-dev, libffi-dev"
+            ;;
+    esac
+}
+
 # Main installation
 install_pvm() {
     print_color "$CYAN" ""
@@ -93,6 +209,10 @@ install_pvm() {
     print_color "$CYAN" "=================================="
     print_color "$CYAN" ""
 
+    # Install dependencies first
+    install_dependencies
+    echo ""
+    
     # Create installation directory
     print_color "$YELLOW" "Installing pvm to: $PVM_HOME"
     
@@ -206,21 +326,7 @@ export PATH="$PVM_HOME/python/bin:$PATH"
     echo "  pvm --help            - Show help"
     echo ""
 
-    print_color "$YELLOW" "Note: Building Python from source requires development tools."
-    print_color "$YELLOW" "Install dependencies with:"
-    echo ""
-    print_color "$CYAN" "  # Debian/Ubuntu:"
-    print_color "$CYAN" "  sudo apt install build-essential libssl-dev zlib1g-dev \\"
-    print_color "$CYAN" "    libbz2-dev libreadline-dev libsqlite3-dev libffi-dev"
-    echo ""
-    print_color "$CYAN" "  # CentOS/RHEL:"
-    print_color "$CYAN" "  sudo yum groupinstall 'Development Tools'"
-    print_color "$CYAN" "  sudo yum install openssl-devel bzip2-devel libffi-devel"
-    echo ""
-    print_color "$CYAN" "  # macOS:"
-    print_color "$CYAN" "  xcode-select --install"
-    echo ""
-
+    print_color "$GREEN" "Build dependencies have been automatically installed."
     print_color "$GREEN" "Installation path: $PVM_HOME"
     print_color "$GREEN" "Config file: $profile"
     echo ""
