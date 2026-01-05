@@ -1,0 +1,6 @@
+# Cloudflare Pages Redirects
+
+# GitHub redirects
+/github https://github.com/violettoolssite/pym 302
+/repo https://github.com/violettoolssite/pym 302
+

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PVM - Python Version Manager | 跨平台Python版本管理工具</title>
+    <meta name="description" content="pvm 是一个简单的跨平台 Python 版本管理工具，支持 Windows/Linux/macOS，一键安装和切换多个 Python 版本。">
+    <meta name="keywords" content="pvm, python, version manager, nvm, python版本管理, Windows, Linux, macOS">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="#" class="logo">PVM</a>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#install">Install</a></li>
+            <li><a href="#versions">Versions</a></li>
+            <li><a href="#mirror">Mirror</a></li>
+            <li><a href="https://github.com/violettoolssite/pym" target="_blank">GitHub</a></li>
+        </ul>
+        <button class="menu-btn" onclick="toggleMenu()">Menu</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="badge">OPEN SOURCE / APACHE 2.0 / v1.0.0</div>
+            <h1 class="title">PVM</h1>
+            <p class="subtitle">
+                跨平台 Python 版本管理工具，灵感来自 nvm。
+                一键安装、切换和管理多个 Python 版本。
+                支持 Windows (CMD/PowerShell)、Linux 和 macOS。
+            </p>
+            <div class="hero-tags">
+                <a href="#install" class="tag">Windows</a>
+                <a href="#install" class="tag">Linux</a>
+                <a href="#install" class="tag">macOS</a>
+                <a href="#install" class="tag">CMD</a>
+                <a href="#install" class="tag">PowerShell</a>
+                <a href="#install" class="tag">Bash</a>
+            </div>
+            <div class="hero-buttons">
+                <a href="#install" class="btn btn-primary">Quick Install</a>
+                <a href="https://github.com/violettoolssite/pym" class="btn btn-secondary" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Install Section -->
+    <section id="install" class="install-section">
+        <div class="container">
+            <h2 class="section-title">Quick Install</h2>
+            
+            <div class="install-grid">
+                <!-- Windows -->
+                <div class="install-card">
+                    <div class="install-header">
+                        <span class="platform-icon">&#x1F5A5;</span>
+                        <h3>Windows (PowerShell)</h3>
+                    </div>
+                    <div class="code-block">
+                        <code id="win-cmd">irm https://pvm.pages.dev/install.ps1 | iex</code>
+                        <button class="copy-btn" onclick="copyCode('win-cmd')">Copy</button>
+                    </div>
+                    <p class="install-note">以管理员身份运行 PowerShell</p>
+                </div>
+
+                <!-- Linux/macOS -->
+                <div class="install-card">
+                    <div class="install-header">
+                        <span class="platform-icon">&#x1F427;</span>
+                        <h3>Linux / macOS</h3>
+                    </div>
+                    <div class="code-block">
+                        <code id="unix-cmd">curl -fsSL https://pvm.pages.dev/install.sh | bash</code>
+                        <button class="copy-btn" onclick="copyCode('unix-cmd')">Copy</button>
+                    </div>
+                    <p class="install-note">需要 curl 和构建工具</p>
+                </div>
+            </div>
+
+            <!-- Mirror Install -->
+            <div class="mirror-install">
+                <h3>China Mirror / 国内镜像</h3>
+                <div class="install-grid">
+                    <div class="install-card">
+                        <div class="code-block">
+                            <code id="win-mirror">irm https://mirror.ghproxy.com/https://raw.githubusercontent.com/violettoolssite/pym/main/install.ps1 | iex</code>
+                            <button class="copy-btn" onclick="copyCode('win-mirror')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="install-card">
+                        <div class="code-block">
+                            <code id="unix-mirror">curl -fsSL https://mirror.ghproxy.com/https://raw.githubusercontent.com/violettoolssite/pym/main/install.sh | bash</code>
+                            <button class="copy-btn" onclick="copyCode('unix-mirror')">Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Usage Section -->
+    <section class="usage-section">
+        <div class="container">
+            <h2 class="section-title">Usage / 使用方法</h2>
+            <div class="code-example">
+                <div class="code-header">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                    <span class="code-title">Terminal</span>
+                </div>
+                <pre class="code-content"><code><span class="comment"># List available Python versions</span>
+<span class="prompt">$</span> pvm list available
+
+<span class="comment"># Install Python 3.12.4</span>
+<span class="prompt">$</span> pvm install 3.12.4
+
+<span class="comment"># Switch to Python 3.12.4</span>
+<span class="prompt">$</span> pvm use 3.12.4
+
+<span class="comment"># Show current version</span>
+<span class="prompt">$</span> pvm current
+<span class="output">Current Python version: 3.12.4</span>
+
+<span class="comment"># List installed versions</span>
+<span class="prompt">$</span> pvm list
+<span class="output">  * 3.12.4 (current)
+    3.11.9
+    3.10.14</span>
+
+<span class="comment"># Uninstall a version</span>
+<span class="prompt">$</span> pvm uninstall 3.10.14</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2 class="section-title">Features / 功能特性</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <h3>Quick Install</h3>
+                    <p>一键安装多个 Python 版本，自动下载和配置，无需手动设置环境变量。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128260;</div>
+                    <h3>Easy Switch</h3>
+                    <p>一条命令切换 Python 版本，自动更新 PATH，立即生效。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127760;</div>
+                    <h3>Cross Platform</h3>
+                    <p>支持 Windows (CMD/PowerShell)、Linux 和 macOS，统一的命令体验。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128640;</div>
+                    <h3>Mirror Support</h3>
+                    <p>支持配置国内镜像源（华为云、npmmirror），加速下载。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128230;</div>
+                    <h3>Lightweight</h3>
+                    <p>纯脚本实现，无需安装额外依赖，Windows 使用嵌入式 Python。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128736;</div>
+                    <h3>pip Included</h3>
+                    <p>自动安装 pip，开箱即用，立即开始你的 Python 项目。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Versions Section -->
+    <section id="versions" class="versions-section">
+        <div class="container">
+            <h2 class="section-title">Available Versions / 可用版本</h2>
+            <p class="section-desc">以下是可通过 pvm 安装的 Python 版本：</p>
+            
+            <div class="version-groups" id="version-list">
+                <!-- Versions will be loaded dynamically -->
+                <div class="loading">Loading versions...</div>
+            </div>
+
+            <div class="version-note">
+                <p>使用 <code>pvm list available</code> 命令查看最新的可用版本列表。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mirror Section -->
+    <section id="mirror" class="mirror-section">
+        <div class="container">
+            <h2 class="section-title">Mirror Configuration / 镜像配置</h2>
+            <p class="section-desc">编辑 <code>~/.pvm/settings.json</code> 配置镜像源以加速下载：</p>
+            
+            <div class="mirror-cards">
+                <div class="mirror-card">
+                    <h3>Default / 默认</h3>
+                    <div class="code-block">
+                        <code>https://www.python.org/ftp/python</code>
+                    </div>
+                </div>
+                <div class="mirror-card recommended">
+                    <div class="recommended-badge">Recommended for China</div>
+                    <h3>Huawei Cloud / 华为云</h3>
+                    <div class="code-block">
+                        <code>https://mirrors.huaweicloud.com/python</code>
+                    </div>
+                </div>
+                <div class="mirror-card">
+                    <h3>npmmirror</h3>
+                    <div class="code-block">
+                        <code>https://registry.npmmirror.com/-/binary/python</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-example">
+                <h3>Configuration Example / 配置示例</h3>
+                <div class="code-example">
+                    <div class="code-header">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                        <span class="code-title">~/.pvm/settings.json</span>
+                    </div>
+                    <pre class="code-content"><code>{
+  "mirror": "https://mirrors.huaweicloud.com/python"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/violettoolssite/pym" target="_blank">GitHub</a>
+                <a href="https://github.com/violettoolssite/pym/blob/main/README.md" target="_blank">Documentation</a>
+                <a href="https://github.com/violettoolssite/pym/blob/main/LICENSE" target="_blank">License</a>
+            </div>
+            <p class="footer-text">PVM v1.0.0 - Apache 2.0 License</p>
+            <p class="footer-credit">Inspired by <a href="https://github.com/nvm-sh/nvm" target="_blank">nvm</a></p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
