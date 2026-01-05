@@ -36,6 +36,16 @@ $script:PVM_SYMLINK = Join-Path $script:PVM_HOME "python"
 # Default Python download mirror
 $script:DEFAULT_MIRROR = "https://www.python.org/ftp/python"
 
+# Preset mirrors
+$script:MIRRORS = @{
+    "default"   = "https://www.python.org/ftp/python"
+    "tsinghua"  = "https://mirrors.tuna.tsinghua.edu.cn/python"
+    "qinghua"   = "https://mirrors.tuna.tsinghua.edu.cn/python"
+    "huawei"    = "https://mirrors.huaweicloud.com/python"
+    "npmmirror" = "https://registry.npmmirror.com/-/binary/python"
+    "aliyun"    = "https://mirrors.aliyun.com/python"
+}
+
 # Available Python versions (commonly used stable versions)
 $script:AVAILABLE_VERSIONS = @(
     "3.13.1", "3.13.0",
@@ -113,20 +123,29 @@ Commands:
     use <version>           Switch to a specific Python version
     current                 Show the currently active Python version
     which                   Show the path to the current Python executable
+    config [mirror]         Configure mirror (show current if no argument)
     --help, -h              Show this help message
     --version, -v           Show pvm version
 
 Options:
     --arch <32|64>          Architecture for install (default: 64)
 
+Mirror Presets:
+    tsinghua, qinghua       Tsinghua University (China)
+    huawei                  Huawei Cloud (China)
+    npmmirror               npmmirror (China)
+    aliyun                  Aliyun (China)
+    default                 python.org (Official)
+
 Examples:
-    pvm install 3.12.4      Install Python 3.12.4
-    pvm use 3.12.4          Switch to Python 3.12.4
-    pvm install 3.11.9 --arch 32   Install 32-bit Python 3.11.9
+    pvm install 3.12.4           Install Python 3.12.4
+    pvm use 3.12.4               Switch to Python 3.12.4
+    pvm config tsinghua          Use Tsinghua mirror
+    pvm config huawei            Use Huawei Cloud mirror
+    pvm config default           Use official python.org
 
 Configuration:
     pvm stores data in: $($script:PVM_HOME)
-    Edit settings.json to configure mirrors.
 
 "@
     Write-Host $helpText
@@ -477,6 +496,78 @@ function Show-WhichPython {
     }
 }
 
+function Set-PvmConfig {
+    <#
+    .SYNOPSIS
+        Configure pvm settings (mirror)
+    #>
+    param(
+        [string]$MirrorName
+    )
+    
+    # If no argument, show current config
+    if ([string]::IsNullOrEmpty($MirrorName)) {
+        Show-PvmConfig
+        return
+    }
+    
+    # Check if it's a preset name
+    $mirrorUrl = $null
+    if ($script:MIRRORS.ContainsKey($MirrorName.ToLower())) {
+        $mirrorUrl = $script:MIRRORS[$MirrorName.ToLower()]
+        Write-Host "Using preset mirror: $MirrorName" -ForegroundColor Cyan
+    }
+    elseif ($MirrorName -match '^https?://') {
+        # It's a custom URL
+        $mirrorUrl = $MirrorName
+        Write-Host "Using custom mirror URL" -ForegroundColor Cyan
+    }
+    else {
+        Write-Host "Error: Unknown mirror '$MirrorName'" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "Available presets:" -ForegroundColor Yellow
+        Write-Host "  tsinghua, qinghua   - Tsinghua University (https://mirrors.tuna.tsinghua.edu.cn/python)"
+        Write-Host "  huawei              - Huawei Cloud (https://mirrors.huaweicloud.com/python)"
+        Write-Host "  npmmirror           - npmmirror (https://registry.npmmirror.com/-/binary/python)"
+        Write-Host "  aliyun              - Aliyun (https://mirrors.aliyun.com/python)"
+        Write-Host "  default             - python.org (https://www.python.org/ftp/python)"
+        Write-Host ""
+        Write-Host "Or use a custom URL: pvm config https://your-mirror.com/python"
+        return
+    }
+    
+    # Save to settings
+    $settings = @{
+        mirror = $mirrorUrl
+    }
+    $settings | ConvertTo-Json | Set-Content -Path $script:PVM_SETTINGS_FILE -Encoding UTF8
+    
+    Write-Host "Mirror configured: $mirrorUrl" -ForegroundColor Green
+}
+
+function Show-PvmConfig {
+    <#
+    .SYNOPSIS
+        Show current pvm configuration
+    #>
+    $settings = Get-PvmSettings
+    $mirror = if ($settings.mirror) { $settings.mirror } else { $script:DEFAULT_MIRROR }
+    
+    Write-Host ""
+    Write-Host "pvm Configuration:" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Mirror: $mirror" -ForegroundColor White
+    Write-Host "  Config: $($script:PVM_SETTINGS_FILE)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "Available presets:" -ForegroundColor Yellow
+    Write-Host "  pvm config tsinghua   - Tsinghua University"
+    Write-Host "  pvm config huawei     - Huawei Cloud"
+    Write-Host "  pvm config npmmirror  - npmmirror"
+    Write-Host "  pvm config aliyun     - Aliyun"
+    Write-Host "  pvm config default    - python.org (Official)"
+    Write-Host ""
+}
+
 # Main execution
 Initialize-Pvm
 
@@ -535,6 +626,9 @@ switch ($Command) {
     }
     'which' {
         Show-WhichPython
+    }
+    'config' {
+        Set-PvmConfig -MirrorName $Version
     }
     default {
         if ([string]::IsNullOrEmpty($Command)) {

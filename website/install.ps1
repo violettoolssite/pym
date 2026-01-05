@@ -19,7 +19,7 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $PVM_REPO = "https://github.com/violettoolssite/pym.git"
-$PVM_RAW_BASE = "https://pvm-arc.pages.dev"
+$PVM_RAW_BASE = "https://pvm.violetteam.cloud"
 
 function Write-ColorOutput {
     param(

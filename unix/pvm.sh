@@ -21,6 +21,16 @@ PVM_SYMLINK="$PVM_HOME/python"
 # Default mirror
 DEFAULT_MIRROR="https://www.python.org/ftp/python"
 
+# Preset mirrors
+declare -A MIRRORS=(
+    ["default"]="https://www.python.org/ftp/python"
+    ["tsinghua"]="https://mirrors.tuna.tsinghua.edu.cn/python"
+    ["qinghua"]="https://mirrors.tuna.tsinghua.edu.cn/python"
+    ["huawei"]="https://mirrors.huaweicloud.com/python"
+    ["npmmirror"]="https://registry.npmmirror.com/-/binary/python"
+    ["aliyun"]="https://mirrors.aliyun.com/python"
+)
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -79,16 +89,25 @@ Commands:
     use <version>           Switch to a specific Python version
     current                 Show the currently active Python version
     which                   Show the path to the current Python executable
+    config [mirror]         Configure mirror (show current if no argument)
     --help, -h              Show this help message
     --version, -v           Show pvm version
 
+Mirror Presets:
+    tsinghua, qinghua       Tsinghua University (China)
+    huawei                  Huawei Cloud (China)
+    npmmirror               npmmirror (China)
+    aliyun                  Aliyun (China)
+    default                 python.org (Official)
+
 Examples:
-    pvm install 3.12.4      Install Python 3.12.4
-    pvm use 3.12.4          Switch to Python 3.12.4
+    pvm install 3.12.4           Install Python 3.12.4
+    pvm use 3.12.4               Switch to Python 3.12.4
+    pvm config tsinghua          Use Tsinghua mirror
+    pvm config huawei            Use Huawei Cloud mirror
 
 Configuration:
     pvm stores data in: $PVM_HOME
-    Edit settings.json to configure mirrors.
 
 EOF
 }
@@ -468,6 +487,67 @@ pvm_which() {
     fi
 }
 
+# Configure mirror
+pvm_config() {
+    local mirror_name="$1"
+    
+    # If no argument, show current config
+    if [[ -z "$mirror_name" ]]; then
+        pvm_show_config
+        return
+    fi
+    
+    local mirror_url=""
+    local lower_name="${mirror_name,,}"
+    
+    # Check if it's a preset name
+    if [[ -n "${MIRRORS[$lower_name]}" ]]; then
+        mirror_url="${MIRRORS[$lower_name]}"
+        echo -e "${CYAN}Using preset mirror: $mirror_name${NC}"
+    elif [[ "$mirror_name" =~ ^https?:// ]]; then
+        # It's a custom URL
+        mirror_url="$mirror_name"
+        echo -e "${CYAN}Using custom mirror URL${NC}"
+    else
+        echo -e "${RED}Error: Unknown mirror '$mirror_name'${NC}"
+        echo ""
+        echo -e "${YELLOW}Available presets:${NC}"
+        echo "  tsinghua, qinghua   - Tsinghua University (https://mirrors.tuna.tsinghua.edu.cn/python)"
+        echo "  huawei              - Huawei Cloud (https://mirrors.huaweicloud.com/python)"
+        echo "  npmmirror           - npmmirror (https://registry.npmmirror.com/-/binary/python)"
+        echo "  aliyun              - Aliyun (https://mirrors.aliyun.com/python)"
+        echo "  default             - python.org (https://www.python.org/ftp/python)"
+        echo ""
+        echo "Or use a custom URL: pvm config https://your-mirror.com/python"
+        return 1
+    fi
+    
+    # Save to settings
+    echo "{\"mirror\": \"$mirror_url\"}" > "$PVM_SETTINGS_FILE"
+    
+    echo -e "${GREEN}Mirror configured: $mirror_url${NC}"
+}
+
+# Show current config
+pvm_show_config() {
+    local mirror
+    mirror=$(pvm_get_mirror)
+    
+    echo ""
+    echo -e "${CYAN}pvm Configuration:${NC}"
+    echo ""
+    echo "  Mirror: $mirror"
+    echo -e "${GRAY}  Config: $PVM_SETTINGS_FILE${NC}"
+    echo ""
+    echo -e "${YELLOW}Available presets:${NC}"
+    echo "  pvm config tsinghua   - Tsinghua University"
+    echo "  pvm config huawei     - Huawei Cloud"
+    echo "  pvm config npmmirror  - npmmirror"
+    echo "  pvm config aliyun     - Aliyun"
+    echo "  pvm config default    - python.org (Official)"
+    echo ""
+}
+
 # Main function
 pvm() {
     pvm_init
@@ -497,6 +577,9 @@ pvm() {
             ;;
         which)
             pvm_which
+            ;;
+        config)
+            pvm_config "$1"
             ;;
         --help|-h|help)
             pvm_help

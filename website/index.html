@@ -63,7 +63,7 @@
                         <h3>Windows (PowerShell)</h3>
                     </div>
                     <div class="code-block">
-                        <code id="win-cmd">irm https://pvm-arc.pages.dev/install.ps1 | iex</code>
+                        <code id="win-cmd">irm https://pvm.violetteam.cloud/install.ps1 | iex</code>
                         <button class="copy-btn" onclick="copyCode('win-cmd')">Copy</button>
                     </div>
                     <p class="install-note">以管理员身份运行 PowerShell</p>
@@ -75,7 +75,7 @@
                         <h3>Linux / macOS</h3>
                     </div>
                     <div class="code-block">
-                        <code id="unix-cmd">curl -fsSL https://pvm-arc.pages.dev/install.sh | bash</code>
+                        <code id="unix-cmd">curl -fsSL https://pvm.violetteam.cloud/install.sh | bash</code>
                         <button class="copy-btn" onclick="copyCode('unix-cmd')">Copy</button>
                     </div>
                     <p class="install-note">需要 curl 和构建工具</p>
@@ -193,42 +193,58 @@
     <section id="mirror" class="mirror-section">
         <div class="container">
             <h2 class="section-title">Mirror Configuration / 镜像配置</h2>
-            <p class="section-desc">编辑 <code>~/.pvm/settings.json</code> 配置镜像源以加速下载：</p>
+            <p class="section-desc">使用 <code>pvm config</code> 命令快速配置镜像源：</p>
             
-            <div class="mirror-cards">
-                <div class="mirror-card">
-                    <h3>Default / 默认</h3>
-                    <div class="code-block">
-                        <code>https://www.python.org/ftp/python</code>
-                    </div>
-                </div>
-                <div class="mirror-card recommended">
-                    <div class="recommended-badge">Recommended for China</div>
-                    <h3>Huawei Cloud / 华为云</h3>
-                    <div class="code-block">
-                        <code>https://mirrors.huaweicloud.com/python</code>
-                    </div>
-                </div>
-                <div class="mirror-card">
-                    <h3>npmmirror</h3>
-                    <div class="code-block">
-                        <code>https://registry.npmmirror.com/-/binary/python</code>
-                    </div>
-                </div>
-            </div>
-
             <div class="config-example">
-                <h3>Configuration Example / 配置示例</h3>
                 <div class="code-example">
                     <div class="code-header">
                         <span class="dot red"></span>
                         <span class="dot yellow"></span>
                         <span class="dot green"></span>
-                        <span class="code-title">~/.pvm/settings.json</span>
+                        <span class="code-title">Terminal</span>
                     </div>
-                    <pre class="code-content"><code>{
-  "mirror": "https://mirrors.huaweicloud.com/python"
-}</code></pre>
+                    <pre class="code-content"><code><span class="comment"># Use Tsinghua mirror (recommended for China)</span>
+<span class="prompt">$</span> pvm config tsinghua
+
+<span class="comment"># Use Huawei Cloud mirror</span>
+<span class="prompt">$</span> pvm config huawei
+
+<span class="comment"># Show current config</span>
+<span class="prompt">$</span> pvm config</code></pre>
+                </div>
+            </div>
+
+            <div class="mirror-cards">
+                <div class="mirror-card recommended">
+                    <div class="recommended-badge">Recommended for China</div>
+                    <h3>Tsinghua / 清华</h3>
+                    <div class="code-block">
+                        <code>pvm config tsinghua</code>
+                    </div>
+                </div>
+                <div class="mirror-card">
+                    <h3>Huawei Cloud / 华为云</h3>
+                    <div class="code-block">
+                        <code>pvm config huawei</code>
+                    </div>
+                </div>
+                <div class="mirror-card">
+                    <h3>Aliyun / 阿里云</h3>
+                    <div class="code-block">
+                        <code>pvm config aliyun</code>
+                    </div>
+                </div>
+                <div class="mirror-card">
+                    <h3>npmmirror</h3>
+                    <div class="code-block">
+                        <code>pvm config npmmirror</code>
+                    </div>
+                </div>
+                <div class="mirror-card">
+                    <h3>Default / 官方</h3>
+                    <div class="code-block">
+                        <code>pvm config default</code>
+                    </div>
                 </div>
             </div>
         </div>

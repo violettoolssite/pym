@@ -23,7 +23,7 @@
 
 ```powershell
 # Run in PowerShell as Administrator
-irm https://pvm-arc.pages.dev/install.ps1 | iex
+irm https://pvm.violetteam.cloud/install.ps1 | iex
 ```
 
 Or manually:
@@ -47,7 +47,7 @@ pvm install 3.12.4
 #### Linux/macOS
 
 ```bash
-curl -fsSL https://pvm-arc.pages.dev/install.sh | bash
+curl -fsSL https://pvm.violetteam.cloud/install.sh | bash
 ```
 
 Or manually:
@@ -96,18 +96,34 @@ pvm stores its data in `~/.pvm` (Unix) or `%USERPROFILE%\.pvm` (Windows):
 
 #### Mirror Configuration
 
-Edit `settings.json` to use a mirror:
+Use the `config` command to quickly configure mirrors:
 
-```json
-{
-  "mirror": "https://mirrors.huaweicloud.com/python"
-}
+```bash
+# Use Tsinghua mirror (recommended for China)
+pvm config tsinghua
+
+# Use Huawei Cloud mirror
+pvm config huawei
+
+# Use Aliyun mirror
+pvm config aliyun
+
+# Use npmmirror
+pvm config npmmirror
+
+# Use official python.org
+pvm config default
+
+# Show current config
+pvm config
 ```
 
-Available mirrors:
-- Default: `https://www.python.org/ftp/python`
-- Huawei Cloud: `https://mirrors.huaweicloud.com/python`
-- npmmirror: `https://registry.npmmirror.com/-/binary/python`
+Available presets:
+- `tsinghua` / `qinghua` - Tsinghua University
+- `huawei` - Huawei Cloud
+- `aliyun` - Aliyun
+- `npmmirror` - npmmirror
+- `default` - python.org (Official)
 
 ### License
 
@@ -134,7 +150,7 @@ Apache License 2.0 - see [LICENSE](LICENSE)
 
 ```powershell
 # 以管理员身份在 PowerShell 中运行
-irm https://pvm-arc.pages.dev/install.ps1 | iex
+irm https://pvm.violetteam.cloud/install.ps1 | iex
 ```
 
 或手动安装：
@@ -158,7 +174,7 @@ pvm install 3.12.4
 #### Linux/macOS
 
 ```bash
-curl -fsSL https://pvm-arc.pages.dev/install.sh | bash
+curl -fsSL https://pvm.violetteam.cloud/install.sh | bash
 ```
 
 或手动安装：
@@ -207,18 +223,34 @@ pvm 将数据存储在 `~/.pvm` (Unix) 或 `%USERPROFILE%\.pvm` (Windows)：
 
 #### 镜像配置
 
-编辑 `settings.json` 使用镜像源：
+使用 `config` 命令快速配置镜像源：
 
-```json
-{
-  "mirror": "https://mirrors.huaweicloud.com/python"
-}
+```bash
+# 使用清华源（推荐）
+pvm config tsinghua
+
+# 使用华为云镜像
+pvm config huawei
+
+# 使用阿里云镜像
+pvm config aliyun
+
+# 使用 npmmirror
+pvm config npmmirror
+
+# 使用官方源
+pvm config default
+
+# 查看当前配置
+pvm config
 ```
 
-可用镜像：
-- 默认：`https://www.python.org/ftp/python`
-- 华为云：`https://mirrors.huaweicloud.com/python`
-- npmmirror：`https://registry.npmmirror.com/-/binary/python`
+可用预设：
+- `tsinghua` / `qinghua` - 清华大学
+- `huawei` - 华为云
+- `aliyun` - 阿里云
+- `npmmirror` - npmmirror
+- `default` - python.org（官方）
 
 ### 许可证
 
