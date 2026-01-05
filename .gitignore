@@ -26,7 +26,3 @@ tests/
 # Local development
 .env
 .env.local
-
-# Website (deployed separately)
-website/
-
