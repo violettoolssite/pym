@@ -26,3 +26,6 @@ tests/
 # Local development
 .env
 .env.local
+
+# Website (deployed separately to Cloudflare Pages)
+website/
