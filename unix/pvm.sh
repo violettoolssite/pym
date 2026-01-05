@@ -90,6 +90,7 @@ Commands:
     current                 Show the currently active Python version
     which                   Show the path to the current Python executable
     config [mirror]         Configure mirror (show current if no argument)
+    arch                    Show detected system architecture
     --help, -h              Show this help message
     --version, -v           Show pvm version
 
@@ -224,6 +225,12 @@ pvm_detect_platform() {
         aarch64|arm64)
             arch="aarch64"
             ;;
+        armv7l|armhf)
+            arch="armv7"
+            ;;
+        i686|i386)
+            arch="i686"
+            ;;
         *)
             echo "Unsupported architecture: $arch" >&2
             return 1
@@ -231,6 +238,20 @@ pvm_detect_platform() {
     esac
     
     echo "${os}-${arch}"
+}
+
+# Show detected platform info
+pvm_show_platform() {
+    local platform
+    platform=$(pvm_detect_platform) || return 1
+    
+    local os arch
+    os=$(echo "$platform" | cut -d'-' -f1)
+    arch=$(echo "$platform" | cut -d'-' -f2)
+    
+    echo -e "${CYAN}Detected Platform:${NC}"
+    echo "  OS: $os"
+    echo "  Architecture: $arch"
 }
 
 # Check build dependencies
@@ -580,6 +601,9 @@ pvm() {
             ;;
         config)
             pvm_config "$1"
+            ;;
+        arch|platform)
+            pvm_show_platform
             ;;
         --help|-h|help)
             pvm_help

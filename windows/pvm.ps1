@@ -18,8 +18,8 @@ param(
     [string]$Version,
     
     [Parameter()]
-    [ValidateSet('32', '64')]
-    [string]$Arch = '64',
+    [ValidateSet('32', '64', 'arm64')]
+    [string]$Arch = '',
     
     [Parameter()]
     [switch]$Help
@@ -124,11 +124,12 @@ Commands:
     current                 Show the currently active Python version
     which                   Show the path to the current Python executable
     config [mirror]         Configure mirror (show current if no argument)
+    arch                    Show detected system architecture
     --help, -h              Show this help message
     --version, -v           Show pvm version
 
 Options:
-    --arch <32|64>          Architecture for install (default: 64)
+    --arch <32|64|arm64>    Architecture for install (auto-detect if not specified)
 
 Mirror Presets:
     tsinghua, qinghua       Tsinghua University (China)
@@ -240,6 +241,20 @@ function Show-AvailableVersions {
     Write-Host ""
 }
 
+function Get-SystemArchitecture {
+    <#
+    .SYNOPSIS
+        Detect system architecture
+    #>
+    $arch = $env:PROCESSOR_ARCHITECTURE
+    switch ($arch) {
+        'AMD64' { return '64' }
+        'x86' { return '32' }
+        'ARM64' { return 'arm64' }
+        default { return '64' }
+    }
+}
+
 function Install-PythonVersion {
     <#
     .SYNOPSIS
@@ -248,8 +263,14 @@ function Install-PythonVersion {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Version,
-        [string]$Architecture = '64'
+        [string]$Architecture = ''
     )
+    
+    # Auto-detect architecture if not specified
+    if ([string]::IsNullOrEmpty($Architecture)) {
+        $Architecture = Get-SystemArchitecture
+        Write-Host "Detected architecture: $Architecture" -ForegroundColor DarkGray
+    }
     
     # Validate version format
     if ($Version -notmatch '^\d+\.\d+\.\d+$') {
@@ -266,14 +287,19 @@ function Install-PythonVersion {
     }
     
     # Determine architecture suffix
-    $archSuffix = if ($Architecture -eq '32') { 'win32' } else { 'amd64' }
+    $archSuffix = switch ($Architecture) {
+        '32' { 'win32' }
+        'arm64' { 'arm64' }
+        default { 'amd64' }
+    }
     
     # Build download URL
     $mirror = Get-Mirror
     $zipName = "python-$Version-embed-$archSuffix.zip"
     $downloadUrl = "$mirror/$Version/$zipName"
     
-    Write-Host "Installing Python $Version ($Architecture-bit)..." -ForegroundColor Cyan
+    $archDisplay = if ($Architecture -eq 'arm64') { 'ARM64' } else { "$Architecture-bit" }
+    Write-Host "Installing Python $Version ($archDisplay)..." -ForegroundColor Cyan
     Write-Host "Download URL: $downloadUrl" -ForegroundColor DarkGray
     
     # Create temp directory
@@ -629,6 +655,32 @@ switch ($Command) {
     }
     'config' {
         Set-PvmConfig -MirrorName $Version
+    }
+    'arch' {
+        $arch = Get-SystemArchitecture
+        $archDisplay = switch ($arch) {
+            '64' { 'x86_64 (64-bit)' }
+            '32' { 'x86 (32-bit)' }
+            'arm64' { 'ARM64' }
+        }
+        Write-Host ""
+        Write-Host "Detected Platform:" -ForegroundColor Cyan
+        Write-Host "  OS: Windows"
+        Write-Host "  Architecture: $archDisplay"
+        Write-Host ""
+    }
+    'platform' {
+        $arch = Get-SystemArchitecture
+        $archDisplay = switch ($arch) {
+            '64' { 'x86_64 (64-bit)' }
+            '32' { 'x86 (32-bit)' }
+            'arm64' { 'ARM64' }
+        }
+        Write-Host ""
+        Write-Host "Detected Platform:" -ForegroundColor Cyan
+        Write-Host "  OS: Windows"
+        Write-Host "  Architecture: $archDisplay"
+        Write-Host ""
     }
     default {
         if ([string]::IsNullOrEmpty($Command)) {
