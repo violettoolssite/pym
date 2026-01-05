@@ -267,10 +267,6 @@ body::before {
     margin-bottom: 16px;
 }
 
-.platform-icon {
-    font-size: 24px;
-}
-
 .install-header h3 {
     font-size: 18px;
     font-weight: 600;
@@ -411,11 +407,6 @@ body::before {
 .feature-card:hover {
     border-color: var(--accent-purple);
     transform: translateY(-4px);
-}
-
-.feature-icon {
-    font-size: 32px;
-    margin-bottom: 16px;
 }
 
 .feature-card h3 {
