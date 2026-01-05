@@ -27,3 +27,6 @@ tests/
 .env
 .env.local
 
+# Website (deployed separately)
+website/
+
