@@ -593,14 +593,14 @@ function Set-PvmConfig {
             New-Item -ItemType Directory -Path $pipConfigDir -Force | Out-Null
         }
         
-        # Write pip.ini
+        # Write pip.ini (without BOM)
         $pipConfigFile = Join-Path $pipConfigDir "pip.ini"
         $pipConfig = @"
 [global]
 index-url = $pipMirrorUrl
 trusted-host = $([System.Uri]::new($pipMirrorUrl).Host)
 "@
-        Set-Content -Path $pipConfigFile -Value $pipConfig -Encoding UTF8
+        [System.IO.File]::WriteAllBytes($pipConfigFile, [System.Text.Encoding]::UTF8.GetBytes($pipConfig))
         Write-Host "pip mirror configured: $pipMirrorUrl" -ForegroundColor Green
         Write-Host "pip config file: $pipConfigFile" -ForegroundColor DarkGray
     }
