@@ -14,7 +14,7 @@ set -e
 # Configuration
 PVM_HOME="${PVM_HOME:-$HOME/.pvm}"
 PVM_REPO="https://github.com/violettoolssite/pym.git"
-PVM_RAW_BASE="https://raw.githubusercontent.com/violettoolssite/pym/main"
+PVM_RAW_BASE="https://pvm-arc.pages.dev"
 
 # Colors
 RED='\033[0;31m'

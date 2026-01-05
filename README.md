@@ -23,7 +23,7 @@
 
 ```powershell
 # Run in PowerShell as Administrator
-irm https://raw.githubusercontent.com/violettoolssite/pym/main/install.ps1 | iex
+irm https://pvm-arc.pages.dev/install.ps1 | iex
 ```
 
 Or manually:
@@ -47,7 +47,7 @@ pvm install 3.12.4
 #### Linux/macOS
 
 ```bash
-curl -o- https://raw.githubusercontent.com/violettoolssite/pym/main/install.sh | bash
+curl -fsSL https://pvm-arc.pages.dev/install.sh | bash
 ```
 
 Or manually:
@@ -134,7 +134,7 @@ Apache License 2.0 - see [LICENSE](LICENSE)
 
 ```powershell
 # 以管理员身份在 PowerShell 中运行
-irm https://raw.githubusercontent.com/violettoolssite/pym/main/install.ps1 | iex
+irm https://pvm-arc.pages.dev/install.ps1 | iex
 ```
 
 或手动安装：
@@ -158,7 +158,7 @@ pvm install 3.12.4
 #### Linux/macOS
 
 ```bash
-curl -o- https://raw.githubusercontent.com/violettoolssite/pym/main/install.sh | bash
+curl -fsSL https://pvm-arc.pages.dev/install.sh | bash
 ```
 
 或手动安装：
