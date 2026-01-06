@@ -9,6 +9,19 @@
     License: Apache 2.0
 #>
 
+# Set console output encoding to UTF-8 to prevent encoding issues
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+    }
+    # Set default encoding for file operations
+    $PSDefaultParameterValues['*:Encoding'] = 'utf8'
+} catch {
+    # Ignore encoding errors on older PowerShell versions
+}
+
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]

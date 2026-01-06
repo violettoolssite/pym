@@ -66,13 +66,13 @@ function Install-Pvm {
         $ps1Content = (Invoke-WebRequest -Uri "$PVM_RAW_BASE/windows/pvm.ps1" -UseBasicParsing).Content
         Set-Content -Path (Join-Path $windowsDir "pvm.ps1") -Value $ps1Content -Encoding UTF8
 
-        # Download batch wrapper
+        # Download batch wrapper (must be ASCII, not UTF-8)
         $cmdContent = (Invoke-WebRequest -Uri "$PVM_RAW_BASE/windows/pvm.cmd" -UseBasicParsing).Content
-        Set-Content -Path (Join-Path $windowsDir "pvm.cmd") -Value $cmdContent -Encoding UTF8
+        [System.IO.File]::WriteAllBytes((Join-Path $windowsDir "pvm.cmd"), [System.Text.Encoding]::ASCII.GetBytes($cmdContent))
 
-        # Download elevate script
+        # Download elevate script (must be ASCII, not UTF-8)
         $elevateContent = (Invoke-WebRequest -Uri "$PVM_RAW_BASE/windows/elevate.cmd" -UseBasicParsing).Content
-        Set-Content -Path (Join-Path $windowsDir "elevate.cmd") -Value $elevateContent -Encoding UTF8
+        [System.IO.File]::WriteAllBytes((Join-Path $windowsDir "elevate.cmd"), [System.Text.Encoding]::ASCII.GetBytes($elevateContent))
     }
     catch {
         Write-ColorOutput "Error downloading pvm scripts: $_" "Red"
