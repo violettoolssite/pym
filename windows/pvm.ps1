@@ -10,17 +10,12 @@
 #>
 
 # Set console output encoding to UTF-8 to prevent encoding issues
-try {
+if ($PSVersionTable.PSVersion.Major -ge 6) {
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-    $OutputEncoding = [System.Text.Encoding]::UTF8
-    if ($PSVersionTable.PSVersion.Major -ge 6) {
-        [Console]::InputEncoding = [System.Text.Encoding]::UTF8
-    }
-    # Set default encoding for file operations
-    $PSDefaultParameterValues['*:Encoding'] = 'utf8'
-} catch {
-    # Ignore encoding errors on older PowerShell versions
+    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 }
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 
 [CmdletBinding()]
 param(
