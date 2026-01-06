@@ -9,14 +9,6 @@
     License: Apache 2.0
 #>
 
-# Set console output encoding to UTF-8 to prevent encoding issues
-if ($PSVersionTable.PSVersion.Major -ge 6) {
-    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
-}
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
-
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
@@ -32,6 +24,15 @@ param(
     [Parameter()]
     [switch]$Help
 )
+
+# Set console output encoding to UTF-8 to prevent encoding issues
+if ($PSVersionTable.PSVersion.Major -ge 6) {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+} else {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+}
+$OutputEncoding = [System.Text.Encoding]::UTF8
 
 # Configuration
 $script:PVM_VERSION = "1.0.0"
